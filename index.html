@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Wardrobe App V1</title>
+  <title>Wardrobe App V1 - Categorized</title>
 </head>
 <body>
-  <h1>Wardrobe App V1</h1>
-  <h2>Upload your clothing items:</h2>
+  <h1>Wardrobe App V1 - Categorized</h1>
+
+  <h2>Upload clothing items</h2>
+  <p>Select category, then upload images:</p>
+  <select id="categorySelect">
+    <option value="tops">Tops</option>
+    <option value="bottoms">Bottoms</option>
+    <option value="shorts">Shorts</option>
+    <option value="skirts">Skirts</option>
+    <option value="shoes">Shoes</option>
+    <option value="accessories">Accessories</option>
+  </select>
   <input type="file" id="fileInput" multiple>
+
+  <h2>Your items by category:</h2>
   <div id="preview"></div>
 
   <h2>Generated Outfit:</h2>
@@ -19,52 +31,101 @@
 
   <script>
     const fileInput = document.getElementById('fileInput');
+    const categorySelect = document.getElementById('categorySelect');
     const preview = document.getElementById('preview');
     const generateBtn = document.getElementById('generateBtn');
     const outfitDiv = document.getElementById('outfit');
 
-    let images = [];
+    // Object to hold images by category
+    const imagesByCategory = {
+      tops: [],
+      bottoms: [],
+      shorts: [],
+      skirts: [],
+      shoes: [],
+      accessories: []
+    };
 
-    // Display uploaded images
+    // Display uploaded images by category
     fileInput.addEventListener('change', (e) => {
-      images = [];
-      preview.innerHTML = '';
-      for (const file of e.target.files) {
+      const category = categorySelect.value;
+      if (!category) return;
+
+      // Clear previews for this category
+      // We'll rebuild below
+      imagesByCategory[category] = [];
+
+      // Remove existing preview for this category before adding new
+      // We'll rebuild all previews below anyway
+
+      // Read all files for this category
+      const files = e.target.files;
+      for (const file of files) {
         const reader = new FileReader();
         reader.onload = () => {
-          const img = document.createElement('img');
-          img.src = reader.result;
-          img.style.maxWidth = '100px';
-          img.style.margin = '5px';
-          preview.appendChild(img);
-          images.push(reader.result);
+          imagesByCategory[category].push(reader.result);
+          renderPreviews();
         };
         reader.readAsDataURL(file);
       }
+
+      // Clear file input so same file can be uploaded again if needed
+      e.target.value = '';
     });
 
-    // Generate random outfit
-    generateBtn.addEventListener('click', () => {
-      if (images.length === 0) {
-        outfitDiv.innerHTML = '<p>No images uploaded.</p>';
-        return;
+    // Render previews grouped by category
+    function renderPreviews() {
+      preview.innerHTML = '';
+      for (const category in imagesByCategory) {
+        const imgs = imagesByCategory[category];
+        if (imgs.length === 0) continue;
+
+        const categoryDiv = document.createElement('div');
+        categoryDiv.style.marginBottom = '20px';
+
+        const heading = document.createElement('h3');
+        heading.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+        categoryDiv.appendChild(heading);
+
+        imgs.forEach(src => {
+          const img = document.createElement('img');
+          img.src = src;
+          img.style.maxWidth = '80px';
+          img.style.margin = '5px';
+          categoryDiv.appendChild(img);
+        });
+
+        preview.appendChild(categoryDiv);
       }
+    }
+
+    // Generate an outfit by picking one item from each category (if available)
+    generateBtn.addEventListener('click', () => {
       outfitDiv.innerHTML = '';
-      const numItems = Math.min(3, images.length); // up to 3 items
-      const usedIndexes = new Set();
-      for (let i = 0; i < numItems; i++) {
-        let idx;
-        do { idx = Math.floor(Math.random() * images.length); } while (usedIndexes.has(idx));
-        usedIndexes.add(idx);
+      let hasAny = false;
+
+      for (const category in imagesByCategory) {
+        const imgs = imagesByCategory[category];
+        if (imgs.length === 0) continue; // skip empty categories
+
+        hasAny = true;
+
+        // Pick a random image from the category
+        const idx = Math.floor(Math.random() * imgs.length);
         const img = document.createElement('img');
-        img.src = images[idx];
+        img.src = imgs[idx];
         img.style.maxWidth = '100px';
         img.style.margin = '5px';
+        img.title = category;
         outfitDiv.appendChild(img);
+      }
+
+      if (!hasAny) {
+        outfitDiv.innerHTML = '<p>No images uploaded.</p>';
       }
     });
 
-    // Rating buttons (currently just logs to console)
+    // Rating buttons just log for now
     document.getElementById('thumbsUp').addEventListener('click', () => console.log('👍'));
     document.getElementById('thumbsDown').addEventListener('click', () => console.log('👎'));
   </script>
