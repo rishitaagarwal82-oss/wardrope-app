@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wardrobe App V1</title>
+</head>
+<body>
+  <h1>Wardrobe App V1</h1>
+  <h2>Upload your clothing items:</h2>
+  <input type="file" id="fileInput" multiple>
+  <div id="preview"></div>
+
+  <h2>Generated Outfit:</h2>
+  <div id="outfit"></div>
+  <button id="generateBtn">Generate Outfit</button>
+  <div>
+    <button id="thumbsUp">👍</button>
+    <button id="thumbsDown">👎</button>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const generateBtn = document.getElementById('generateBtn');
+    const outfitDiv = document.getElementById('outfit');
+
+    let images = [];
+
+    // Display uploaded images
+    fileInput.addEventListener('change', (e) => {
+      images = [];
+      preview.innerHTML = '';
+      for (const file of e.target.files) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = document.createElement('img');
+          img.src = reader.result;
+          img.style.maxWidth = '100px';
+          img.style.margin = '5px';
+          preview.appendChild(img);
+          images.push(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Generate random outfit
+    generateBtn.addEventListener('click', () => {
+      if (images.length === 0) {
+        outfitDiv.innerHTML = '<p>No images uploaded.</p>';
+        return;
+      }
+      outfitDiv.innerHTML = '';
+      const numItems = Math.min(3, images.length); // up to 3 items
+      const usedIndexes = new Set();
+      for (let i = 0; i < numItems; i++) {
+        let idx;
+        do { idx = Math.floor(Math.random() * images.length); } while (usedIndexes.has(idx));
+        usedIndexes.add(idx);
+        const img = document.createElement('img');
+        img.src = images[idx];
+        img.style.maxWidth = '100px';
+        img.style.margin = '5px';
+        outfitDiv.appendChild(img);
+      }
+    });
+
+    // Rating buttons (currently just logs to console)
+    document.getElementById('thumbsUp').addEventListener('click', () => console.log('👍'));
+    document.getElementById('thumbsDown').addEventListener('click', () => console.log('👎'));
+  </script>
+</body>
+</html>
